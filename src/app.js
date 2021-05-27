@@ -1,6 +1,6 @@
-import ObsSwitcher from "./components/ObsSwitcher";
+import SlobsSwitcher from "./components/SlobsSwitcher";
 import Chat from "./components/Chat";
-import NodeMediaServer from "./components/NodeMediaServer";
+//import NodeMediaServer from "./components/NodeMediaServer";
 import config from "../config";
 import { version } from "../package.json";
 
@@ -13,7 +13,7 @@ console.log(`
     ╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═════╝ ╚══════╝ v${version}
 `);
 
-const obs = new ObsSwitcher(
+const obs = new SlobsSwitcher(
     config.obs.ip,
     config.obs.password,
     config.obs.lowBitrateScene,
@@ -32,4 +32,4 @@ if (config.twitchChat.enable) {
     );
 }
 
-const nodeMediaServer = new NodeMediaServer(config.nodeMediaServer, obs);
+//const nodeMediaServer = new NodeMediaServer(config.nodeMediaServer, obs);
