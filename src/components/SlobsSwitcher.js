@@ -385,7 +385,7 @@ class SlobsSwitcher extends EventEmitter {
     }
 
     setRecordingStatus(res) {
-        this.recordingStatus = res.recordingStatus;
+        this.recordingStatus = res;
     }
 
     error(e) {
