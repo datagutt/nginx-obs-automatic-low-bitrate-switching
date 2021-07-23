@@ -43,8 +43,10 @@ class SlobsSwitcher extends EventEmitter {
         this.bitrate = null;
         this.nginxVideoMeta = null;
         this.streamStatus = null;
+        this.recordingStatus = null;
         this.heartbeat = null;
         this.obsStreaming = false;
+        this.obsRecording = false;
         this.currentScene = {};
         this.nginxSettings;
         this.previousScene = this.lowBitrateScene;
@@ -78,7 +80,8 @@ class SlobsSwitcher extends EventEmitter {
                     this.scenesChanged();
                     break;
                 case ID_STREAMSTATUS:
-                    this.setStreamStatus(data.result);
+                    this.setStreamStatus(data.result.streamingStatus);
+                    this.setRecordingStatus(data.result.recordingStatus);
                     break;
                 case ID_ACTIVE:
                     console.log('ID_ACTIVE', data);
@@ -106,6 +109,14 @@ class SlobsSwitcher extends EventEmitter {
                         this.streamStarted();
                     } else if (data.result.data == 'offline') {
                         this.streamStopped();
+                    }
+                }
+                if (data.result.emitter === 'STREAM' && data.result.resourceId === 'StreamingService.recordingStatusChange') {
+                    this.setRecordingStatus(data.result.data);
+                    if (data.result.data == 'live') {
+                        this.recordStarted();
+                    } else if (data.result.data == 'offline') {
+                        this.recordStopped();
                     }
                 }
             }
@@ -377,6 +388,10 @@ class SlobsSwitcher extends EventEmitter {
         this.streamStatus = res;
     }
 
+    setRecordingStatus(res) {
+        this.recordingStatus = res.recordingStatus;
+    }
+
     error(e) {
         log.error(e);
     }
@@ -411,8 +426,17 @@ class SlobsSwitcher extends EventEmitter {
         }
     }
 
+    async recordingStopped() {
+        this.obsRecording = false;
+    }
+
+
     streamStarted() {
         this.obsStreaming = true;
+    }
+
+    recordingStarted() {
+        this.obsRecording = true;
     }
 
     getScenes() {
@@ -458,6 +482,26 @@ class SlobsSwitcher extends EventEmitter {
             params: {
                 resource: 'ScenesService'
             }
+        });
+        this.obs.send(message);
+    }
+
+    toggleStreaming() {
+        const message = JSON.stringify({
+            jsonrpc: '2.0',
+            id: ID_TOGGLE,
+            method: 'toggleStreaming',
+            params: { resource: 'StreamingService' },
+        });
+        this.obs.send(message);
+    }
+
+    toggleRecording() {
+        const message = JSON.stringify({
+            jsonrpc: '2.0',
+            id: ID_TOGGLE,
+            method: 'toggleRecording',
+            params: { resource: 'StreamingService' },
         });
         this.obs.send(message);
     }

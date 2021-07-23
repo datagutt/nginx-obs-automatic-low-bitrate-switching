@@ -275,8 +275,15 @@ class Chat {
     async start() {
         // start streaming
         try {
-            await this.obs.send("StartStreaming");
-            this.say(this.locale.start.success);
+            if (!this.obs.obsStreaming) {
+                await this.obs.toggleStreaming();
+                this.say(this.locale.start.success);
+                this.say(
+                    format(this.locale.start.error, {
+                        error: 'Already started'
+                    })
+                );
+            }
         } catch (e) {
             log.error(e);
             this.say(
@@ -290,8 +297,16 @@ class Chat {
     async stop() {
         // stop streaming
         try {
-            await this.obs.send("StopStreaming");
-            this.say(this.locale.stop.success);
+            if (this.obs.obsStreaming) {
+                await this.obs.toggleStreaming();
+                this.say(this.locale.stop.success);
+            } else {
+                this.say(
+                    format(this.locale.stop.error, {
+                        error: 'Already stopped'
+                    })
+                );
+            }
         } catch (e) {
             log.error(e.error);
             this.say(
@@ -324,9 +339,17 @@ class Chat {
     async startStopRec(bool) {
         if (bool) {
             try {
-                const res = await this.obs.send("StartRecording");
-                if (res.status === "ok") this.say(`[REC] ${this.locale.rec.started}`);
-                log.success(`Started recording`);
+                if ( !this.obs.obsRecording ){
+                    const res = await this.obs.toggleRecording();
+                    this.say(`[REC] ${this.locale.rec.started}`);
+                    log.success(`Started recording`);
+                } else {
+                    this.say(
+                        format(`[REC] ${this.locale.rec.error}`, {
+                            option: 'Already recording'
+                        })
+                    );
+                }
             } catch (error) {
                 this.say(
                     format(`[REC] ${this.locale.rec.error}`, {
@@ -336,9 +359,17 @@ class Chat {
             }
         } else {
             try {
-                const res = await this.obs.send("StopRecording");
-                if (res.status === "ok") this.say(`[REC] ${this.locale.rec.stopped}`);
-                log.success(`Stopped recording`);
+                if ( this.obs.obsRecording ){
+                    const res = await this.obs.toggleRecording();
+                    this.say(`[REC] ${this.locale.rec.stopped}`);
+                    log.success(`Stopped recording`);
+                } else {
+                    this.say(
+                        format(`[REC] ${this.locale.rec.error}`, {
+                            option: 'Not recording'
+                        })
+                    );
+                }
             } catch (error) {
                 this.say(
                     format(` [REC] ${this.locale.rec.error}`, {
@@ -356,9 +387,7 @@ class Chat {
         const scene = res.length > 0 ? res[0].name : sceneName;
 
         try {
-            await this.obs.send("SetCurrentScene", {
-                "scene-name": scene
-            });
+            await this.obs.switchScene(scene);
 
             this.say(
                 format(this.locale.switch.success, {
@@ -431,16 +460,12 @@ class Chat {
 
                 if (lastScene == null) return this.say(this.locale.refresh.error);
 
-                await this.obs.send("SetCurrentScene", {
-                    "scene-name": config.obs.refreshScene
-                });
+                await this.obs.switchScene(config.obs.refreshScene);
                 this.say(this.locale.refresh.success);
                 this.isRefreshing = true;
 
                 setTimeout(() => {
-                    this.obs.send("SetCurrentScene", {
-                        "scene-name": lastScene
-                    });
+                    this.obs.switchScene(lastScene);
                     this.say(this.locale.refresh.done);
                     this.isRefreshing = false;
                 }, config.obs.refreshSceneInterval);
@@ -635,7 +660,7 @@ class Chat {
     async fix() {
         this.say(this.locale.fix.try);
 
-		const { availableRequests } = await this.obs.send("GetVersion");
+		/*const { availableRequests } = await this.obs.send("GetVersion");
 
 		if (availableRequests.includes("RestartMedia")) {
 			const s = await this.obs.send("GetMediaSourcesList");
@@ -654,7 +679,7 @@ class Chat {
 						});
 					}
 				});
-		} else {
+		} else {*/
 			const { server, stats, application, key } = config.rtmp;
 			const site = /(\w+:\/\/[^\/]+)/g.exec(stats)[1];
 
@@ -674,7 +699,7 @@ class Chat {
 					this.say(this.locale.fix.error);
 					break;
 			}
-		}
+		/*}*/
     }
 
     registerAliases() {
