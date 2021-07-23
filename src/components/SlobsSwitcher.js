@@ -84,7 +84,6 @@ class SlobsSwitcher extends EventEmitter {
                     this.setRecordingStatus(data.result.recordingStatus);
                     break;
                 case ID_ACTIVE:
-                    console.log('ID_ACTIVE', data);
                     this.currentScene = data.result;
                     break;
                 case ID_CONNECT:
@@ -100,7 +99,6 @@ class SlobsSwitcher extends EventEmitter {
             }
             if (data.result._type !== undefined && data.result._type === 'EVENT') {
                 if (data.result.emitter === 'STREAM' && data.result.resourceId === 'ScenesService.sceneSwitched') {
-                    console.log('b', data);
                     this.currentScene = data.result.data;
                 }
                 if (data.result.emitter === 'STREAM' && data.result.resourceId === 'StreamingService.streamingStatusChange') {
@@ -462,7 +460,6 @@ class SlobsSwitcher extends EventEmitter {
 
     switchScene(sceneName) {
         const scene = this.scenes.get(sceneName);
-        console.log(sceneName, this.scenes, this.scenes.get(sceneName));
         const message = JSON.stringify({
             id: 10,
             jsonrpc: '2.0',
