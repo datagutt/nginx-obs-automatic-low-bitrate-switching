@@ -152,80 +152,78 @@ class SlobsSwitcher extends EventEmitter {
                     canSwitch &&
                     (bitrate === 0 &&
                         currentScene.name !== this.previousScene &&
-                        (this.switchScene(this.previousScene)),
+                        (this.switchScene(this.previousScene),
                         this.switchSceneEmit("live", this.previousScene),
                         log.info(
                             `Stream went online switching to scene: "${this.previousScene}"`
                         )),
                     (rtt < this.highRttTrigger || rtt >= this.highRttTrigger) &&
-                    bitrate <= this.lowBitrateTrigger &&
-                    currentScene.name !== this.lowBitrateScene &&
-                    bitrate !== 0 &&
-                    (this.switchScene(this.lowBitrateScene),
+                        bitrate <= this.lowBitrateTrigger &&
+                        currentScene.name !== this.lowBitrateScene &&
+                        bitrate !== 0 &&
+                        (this.switchScene(this.lowBitrateScene),
                         (this.previousScene = this.lowBitrateScene),
                         this.switchSceneEmit("lowBitrateScene"),
                         log.info(
                             `Low bitrate detected switching to scene: "${this.lowBitrateScene}"`
                         )),
                     rtt >= this.highRttTrigger &&
-                    bitrate > this.lowBitrateTrigger &&
-                    currentScene.name !== this.lowBitrateScene &&
-                    bitrate !== 0 &&
-                    (this.switchScene(this.lowBitrateScene),
+                        bitrate > this.lowBitrateTrigger &&
+                        currentScene.name !== this.lowBitrateScene &&
+                        bitrate !== 0 &&
+                        (this.switchScene(this.lowBitrateScene),
                         (this.previousScene = this.lowBitrateScene),
                         this.switchSceneEmit("lowBitrateScene"),
                         log.info(
                             `High RTT detected switching to scene: "${this.lowBitrateScene}"`
                         )),
-
                     rtt < this.highRttTrigger &&
-                    bitrate > this.lowBitrateTrigger &&
-                    currentScene.name !== this.normalScene &&
-                    (this.switchScene(this.normalScene),
+                        bitrate > this.lowBitrateTrigger &&
+                        currentScene.name !== this.normalScene &&
+                        (this.switchScene(this.normalScene),
                         (this.previousScene = this.normalScene),
                         this.switchSceneEmit("normalScene"),
                         log.info(
                             `Switching to normal scene: "${this.normalScene}"`
-                        ));
+                        )));
             } else {
                 this.isLive &&
                     canSwitch &&
                     (bitrate === 0 &&
                         currentScene.name !== this.previousScene &&
-                        (this.switchScene(this.previousScene)),
+                        (this.switchScene(this.previousScene),
                         this.switchSceneEmit("live", this.previousScene),
                         log.info(
                             `Stream went online switching to scene: "${this.previousScene}"`
                         )),
                     bitrate <= this.lowBitrateTrigger &&
-                    currentScene.name !== this.lowBitrateScene &&
-                    bitrate !== 0 &&
-                    (this.switchScene(this.lowBitrateScene),
-                    (this.previousScene = this.lowBitrateScene),
-                    this.switchSceneEmit("lowBitrateScene"),
-                    log.info(
-                        `Low bitrate detected switching to scene: "${this.lowBitrateScene}"`
-                    )),
-                bitrate > this.lowBitrateTrigger &&
-                    currentScene.name !== this.normalScene &&
-                    (this.switchScene(this.normalScene),
-                    (this.previousScene = this.normalScene),
-                    this.switchSceneEmit("normalScene"),
-                    log.info(
-                        `Switching to normal scene: "${this.normalScene}"`
-                    ));
+                        currentScene.name !== this.lowBitrateScene &&
+                        bitrate !== 0 &&
+                        (this.switchScene(this.lowBitrateScene),
+                        (this.previousScene = this.lowBitrateScene),
+                        this.switchSceneEmit("lowBitrateScene"),
+                        log.info(
+                            `Low bitrate detected switching to scene: "${this.lowBitrateScene}"`
+                        )),
+                    bitrate > this.lowBitrateTrigger &&
+                        currentScene.name !== this.normalScene &&
+                        (this.switchScene(this.normalScene),
+                        (this.previousScene = this.normalScene),
+                        this.switchSceneEmit("normalScene"),
+                        log.info(
+                            `Switching to normal scene: "${this.normalScene}"`
+                        )));
             }
         } else {
             this.isLive = false;
-
             canSwitch &&
                 currentScene.name !== this.offlineScene &&
                 (this.switchScene(this.offlineScene),
-                    this.switchSceneEmit("offlineScene"),
-                    (this.streamStatus = null),
-                    log.warn(
-                        `Error receiving current bitrate or stream is offline. Switching to offline scene: "${this.offlineScene}"`
-                    ));
+                this.switchSceneEmit("offlineScene"),
+                (this.streamStatus = null),
+                log.warn(
+                    `Error receiving current bitrate or stream is offline. Switching to offline scene: "${this.offlineScene}"`
+                ));
         }
     }
 
