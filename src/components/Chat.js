@@ -18,8 +18,7 @@ class Chat {
         this.username = username.toLowerCase(); // username
         this.password = password; // oauth
         this.channel = `#${channel.toLowerCase()}`; // #channel
-        this.obsProps = obs;
-        this.obs = obs.obs;
+        this.obs = obs;
         this.prefix = config.twitchChat.prefix;
         this.commands = [
             "host",
@@ -55,10 +54,10 @@ class Chat {
         this.registerAliases();
         this.getLanguage();
 
-        this.obsProps.on("live", this.live.bind(this));
-        this.obsProps.on("normalScene", this.onNormalScene.bind(this));
-        this.obsProps.on("lowBitrateScene", this.onLowBitrateScene.bind(this));
-        this.obsProps.on("offlineScene", this.onOfflineScene.bind(this));
+        this.obs.on("live", this.live.bind(this));
+        this.obs.on("normalScene", this.onNormalScene.bind(this));
+        this.obs.on("lowBitrateScene", this.onLowBitrateScene.bind(this));
+        this.obs.on("offlineScene", this.onOfflineScene.bind(this));
     }
 
     open() {
@@ -134,7 +133,7 @@ class Chat {
                     this.handleMessage(parsed);
                     break;
                 case "HOSTTARGET":
-                    if (config.twitchChat.enableAutoStopStreamOnHostOrRaid && !parsed.message.startsWith("-") && this.obsProps.bitrate != null) {
+                    if (config.twitchChat.enableAutoStopStreamOnHostOrRaid && !parsed.message.startsWith("-") && this.obs.bitrate != null) {
                         log.info("Channel started hosting, stopping stream");
                         this.stop();
                     }
@@ -280,7 +279,7 @@ class Chat {
                 this.say(this.locale.start.success);
                 this.say(
                     format(this.locale.start.error, {
-                        error: 'Already started'
+                        error: this.locale.rec.started
                     })
                 );
             }
@@ -303,7 +302,7 @@ class Chat {
             } else {
                 this.say(
                     format(this.locale.stop.error, {
-                        error: 'Already stopped'
+                        error: this.locale.rec.stopped
                     })
                 );
             }
@@ -318,9 +317,9 @@ class Chat {
     }
 
     rec(bool) {
-        console.log(this.obsProps);
+        console.log(this.obs);
         if (!bool) {
-            this.say(`[REC] ${this.obsProps.obsRecording ? this.locale.rec.started : this.locale.rec.stopped}`);
+            this.say(`[REC] ${this.obs.obsRecording ? this.locale.rec.started : this.locale.rec.stopped}`);
             return;
         }
 
@@ -340,9 +339,15 @@ class Chat {
     async startStopRec(bool) {
         if (bool) {
             try {
-                const res = await this.obs.toggleRecording();
-                this.say(`[REC] ${this.locale.rec.started}`);
-                log.success(`Started recording`);
+                if (!this.obs.obsRecording ){
+                    this.obs.toggleRecording();
+                    this.say(`[REC] ${this.locale.rec.started}`);
+                    log.success(`Started recording`);
+                } else {
+                    format(`[REC] ${this.locale.rec.error}`, {
+                        option: this.locale.rec.started
+                    })
+                }
             } catch (error) {
                 this.say(
                     format(`[REC] ${this.locale.rec.error}`, {
@@ -352,9 +357,18 @@ class Chat {
             }
         } else {
             try {
-                const res = await this.obs.toggleRecording();
-                this.say(`[REC] ${this.locale.rec.stopped}`);
-                log.success(`Stopped recording`);
+                if ( this.obs.obsRecording ) {
+                    this.obs.toggleRecording();
+                    this.say(`[REC] ${this.locale.rec.stopped}`);
+                    log.success(`Stopped recording`);
+                } else {
+                    
+                    this.say(
+                        format(` [REC] ${this.locale.rec.error}`, {
+                            option: this.locale.rec.stopped
+                        })
+                    );
+                }
             } catch (error) {
                 this.say(
                     format(` [REC] ${this.locale.rec.error}`, {
@@ -368,7 +382,7 @@ class Chat {
     async switch(sceneName) {
         if (sceneName == null) return this.say(this.locale.switch.error);
 
-        const res = search(sceneName, this.obsProps.scenes, { keySelector: obj => obj.name });
+        const res = search(sceneName, this.obs.scenes, { keySelector: obj => obj.name });
         const scene = res.length > 0 ? res[0].name : sceneName;
 
         try {
@@ -386,18 +400,18 @@ class Chat {
     }
 
     bitrate() {
-        if (this.obsProps.bitrate != null) {
-            if (this.obsProps.rtt != null && this.locale.bitrate.success_rtt != null) {
+        if (this.obs.bitrate != null) {
+            if (this.obs.rtt != null && this.locale.bitrate.success_rtt != null) {
                 this.say(
                     format(this.locale.bitrate.success_rtt, {
-                        bitrate: this.obsProps.bitrate,
-                        rtt: this.obsProps.rtt,
+                        bitrate: this.obs.bitrate,
+                        rtt: this.obs.rtt,
                     })
                 );
             } else {
                 this.say(
                     format(this.locale.bitrate.success, {
-                        bitrate: this.obsProps.bitrate,
+                        bitrate: this.obs.bitrate,
                     })
                 );
            }
@@ -407,14 +421,14 @@ class Chat {
     }
 
     sourceinfo() {
-        if (this.obsProps.nginxVideoMeta != null) {
-            const { height, frame_rate } = this.obsProps.nginxVideoMeta;
+        if (this.obs.nginxVideoMeta != null) {
+            const { height, frame_rate } = this.obs.nginxVideoMeta;
 
             this.say(
                 format(this.locale.sourceinfo.success, {
                     height: height[0],
                     fps: frame_rate[0],
-                    bitrate: this.obsProps.bitrate
+                    bitrate: this.obs.bitrate
                 })
             );
         } else {
@@ -423,12 +437,12 @@ class Chat {
     }
 
     obsinfo() {
-        if (this.obsProps.streamStatus != null) {
-            const { fps, kbitsPerSec } = this.obsProps.streamStatus;
+        if (this.obs.streamStatus != null) {
+            const { fps, kbitsPerSec } = this.obs.streamStatus;
 
             this.say(
                 format(this.locale.obsinfo.success, {
-                    currentScene: this.obsProps.currentScene,
+                    currentScene: this.obs.currentScene,
                     fps: Math.round(fps),
                     bitrate: kbitsPerSec
                 })
@@ -441,7 +455,7 @@ class Chat {
     async refresh() {
         if (!this.isRefreshing) {
             try {
-                const lastScene = this.obsProps.currentScene;
+                const lastScene = this.obs.currentScene;
 
                 if (lastScene == null) return this.say(this.locale.refresh.error);
 
@@ -499,13 +513,13 @@ class Chat {
     trigger(number) {
         if (number) {
             if (!isNaN(number)) {
-                this.obsProps.lowBitrateTrigger = +number;
+                this.obs.lowBitrateTrigger = +number;
                 config.obs.lowBitrateTrigger = +number;
 
                 this.handleWriteToConfig();
                 this.say(
                     format(this.locale.trigger.success, {
-                        number: this.obsProps.lowBitrateTrigger
+                        number: this.obs.lowBitrateTrigger
                     })
                 );
             } else {
@@ -521,7 +535,7 @@ class Chat {
 
         this.say(
             format(this.locale.trigger.current, {
-                number: this.obsProps.lowBitrateTrigger
+                number: this.obs.lowBitrateTrigger
             })
         );
     }

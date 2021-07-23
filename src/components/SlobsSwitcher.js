@@ -97,7 +97,7 @@ class SlobsSwitcher extends EventEmitter {
                     }
                     break;
             }
-            if (data.result._type !== undefined && data.result._type === 'EVENT') {
+            if (data && data.result && data.result._type !== undefined && data.result._type === 'EVENT') {
                 if (data.result.emitter === 'STREAM' && data.result.resourceId === 'ScenesService.sceneSwitched') {
                     this.currentScene = data.result.data;
                 }
@@ -111,7 +111,7 @@ class SlobsSwitcher extends EventEmitter {
                 }
                 if (data.result.emitter === 'STREAM' && data.result.resourceId === 'StreamingService.recordingStatusChange') {
                     this.setRecordingStatus(data.result.data);
-                    if (data.result.data == 'live') {
+                    if (data.result.data == 'recording') {
                         this.recordStarted();
                     } else if (data.result.data == 'offline') {
                         this.recordStopped();
@@ -422,7 +422,7 @@ class SlobsSwitcher extends EventEmitter {
         }
     }
 
-    async recordingStopped() {
+    async recordStopped() {
         this.obsRecording = false;
     }
 
@@ -431,7 +431,7 @@ class SlobsSwitcher extends EventEmitter {
         this.obsStreaming = true;
     }
 
-    recordingStarted() {
+    recordStarted() {
         this.obsRecording = true;
     }
 
@@ -460,6 +460,8 @@ class SlobsSwitcher extends EventEmitter {
 
     switchScene(sceneName) {
         const scene = this.scenes.get(sceneName);
+        console.log('scene', scene);
+        if (!scene || !scene.id) return;
         const message = JSON.stringify({
             id: 10,
             jsonrpc: '2.0',
