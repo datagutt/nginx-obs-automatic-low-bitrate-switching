@@ -318,8 +318,9 @@ class Chat {
     }
 
     rec(bool) {
+        console.log(this.obsProps);
         if (!bool) {
-            this.say(`[REC] ${this.obsProps.heartbeat.recording ? this.locale.rec.started : this.locale.rec.stopped}`);
+            this.say(`[REC] ${this.obsProps.obsRecording ? this.locale.rec.started : this.locale.rec.stopped}`);
             return;
         }
 
@@ -339,17 +340,9 @@ class Chat {
     async startStopRec(bool) {
         if (bool) {
             try {
-                if ( !this.obs.obsRecording ){
-                    const res = await this.obs.toggleRecording();
-                    this.say(`[REC] ${this.locale.rec.started}`);
-                    log.success(`Started recording`);
-                } else {
-                    this.say(
-                        format(`[REC] ${this.locale.rec.error}`, {
-                            option: 'Already recording'
-                        })
-                    );
-                }
+                const res = await this.obs.toggleRecording();
+                this.say(`[REC] ${this.locale.rec.started}`);
+                log.success(`Started recording`);
             } catch (error) {
                 this.say(
                     format(`[REC] ${this.locale.rec.error}`, {
@@ -359,17 +352,9 @@ class Chat {
             }
         } else {
             try {
-                if ( this.obs.obsRecording ){
-                    const res = await this.obs.toggleRecording();
-                    this.say(`[REC] ${this.locale.rec.stopped}`);
-                    log.success(`Stopped recording`);
-                } else {
-                    this.say(
-                        format(`[REC] ${this.locale.rec.error}`, {
-                            option: 'Not recording'
-                        })
-                    );
-                }
+                const res = await this.obs.toggleRecording();
+                this.say(`[REC] ${this.locale.rec.stopped}`);
+                log.success(`Stopped recording`);
             } catch (error) {
                 this.say(
                     format(` [REC] ${this.locale.rec.error}`, {
